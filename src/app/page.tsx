@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 interface Todo {
@@ -12,11 +13,20 @@ export default function TodosPage() {
   const [todos, setTodos] = useState<Todo[]>([])
   const [loading, setLoading] = useState(true)
   const [newTask, setNewTask] = useState('')
+  const router = useRouter()
 
   // OBTENCIÓN DATOS API (GET)
   const fetchTodos = async () => {
     try {
       const response = await fetch('/api/todos')
+
+      if(response.status === 401){
+        router.push('/login')
+        return
+      }
+
+      if(!response.ok)throw new Error('Error al obtener las tareas')
+
       const data = await response.json()
       setTodos(data)
     } catch (error) {
