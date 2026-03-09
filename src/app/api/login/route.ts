@@ -4,6 +4,7 @@ import { cookies } from 'next/headers'
 import { db } from '@/db/index'
 import { profiles } from '@/db/schema'
 import { eq } from 'drizzle-orm'
+import { SignJWT } from 'jose'
 
 export async function POST(request: Request) {
   try {
@@ -25,9 +26,17 @@ export async function POST(request: Request) {
       )
     }
 
-    const cookieStore = await cookies()
     //JWT
-    cookieStore.set('user_session', user.id, {
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET)
+
+    const jwt = await new SignJWT({userId: user.id})
+    .setProtectedHeader({alg: 'HS256'})
+    .setExpirationTime('24h')
+    .sign(secret)
+
+    const cookieStore = await cookies()
+    
+    cookieStore.set('user_session', jwt, {
       httpOnly: true,
       path: '/'
     })
