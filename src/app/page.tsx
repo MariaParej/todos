@@ -13,6 +13,7 @@ export default function TodosPage() {
   const [todos, setTodos] = useState<Todo[]>([])
   const [loading, setLoading] = useState(true)
   const [newTask, setNewTask] = useState('')
+  const [isAuth, setIsAuth] = useState(false)
   const router = useRouter()
 
   // OBTENCIÓN DATOS API (GET)
@@ -20,14 +21,16 @@ export default function TodosPage() {
     try {
       const response = await fetch('/api/todos')
 
-      if(response.status === 401){
+      if (response.status === 401) {
+        setIsAuth(false)
         return
-      } 
+      }
 
-      if(!response.ok)throw new Error('Error al obtener las tareas')
+      if (!response.ok) throw new Error('Error al obtener las tareas')
 
       const data = await response.json()
       setTodos(data)
+      setIsAuth(true)
     } catch (error) {
       alert('Error cargando tareas.')
       console.error('Error cargando tareas:', error)
@@ -99,59 +102,85 @@ export default function TodosPage() {
     fetchTodos()
   }, [])
 
-  if (loading) return <p className='p-4'>Cargando tareas...</p>
+  if (loading)
+    return (
+      <div className='min-h-screen flex items-center justify-center bg-slate-50'>
+        <p className='text-slate-500 animate-pulse'>Cargando tus tareas...</p>
+      </div>
+    )
 
+  if (!isAuth)
+    return (
+      <main className='min-h-screen flex items-center justify-center bg-slate-50 p-4'>
+        <div className='text-center p-8 bg-white shadow-xl rounded-2xl max-w-sm'>
+          <h2 className='text-xl font-bold text-slate-800 mb-2'>
+            Acceso Restringido
+          </h2>
+          <p className='text-slate-500 mb-6'>
+            Debes iniciar sesión para gestionar tus tareas.
+          </p>
+          <button
+            onClick={() => router.push('/login')}
+            className='w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors'
+          >
+            Ir al Login
+          </button>
+        </div>
+      </main>
+    )
   return (
     <main className='min-h-screen bg-slate-50 p-4 md:p-8 font-sans'>
       <div className='max-w-2xl mx-auto bg-white shadow-xl rounded-xl border border-slate-100 overflow-hidden'>
-      <div className='p-6'>
-      {/* FORMULARIO NUEVA TAREA */}
-      <form onSubmit={addTodo} className='flex gap-2 mb-8'>
-        <input
-          type='text'
-          value={newTask}
-          onChange={(e) => setNewTask(e.target.value)}
-          placeholder='Añade la nueva tarea'
-          className='flex-1 p-2 border rounded shadow-sm text-slate-800'
-        />
-        <button
-          type='submit'
-          className='px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors'
-        >
-          Añadir
-        </button>
-      </form>
-      {/* LISTA TAREAS*/}
-      <ul className='space-y-2'>
-        {todos.map((todo) => (
-          <li
-            key={todo.id}
-            className='flex items-center justify-between gap-2 p-2 border rounded hover:bg-gray-50'
-          >
-            <div className='flex items-center gap-3'>
+        <div className='p-6'>
+          {/* FORMULARIO NUEVA TAREA */}
+          <form onSubmit={addTodo} className='flex gap-2 mb-8'>
             <input
-              type='checkbox'
-              className='w-5 h-5 cursor-pointer'
-              checked={todo.done}
-              onChange={() => handleToggle(todo.id, todo.done)}
+              type='text'
+              value={newTask}
+              onChange={(e) => setNewTask(e.target.value)}
+              placeholder='Añade la nueva tarea'
+              className='flex-1 p-2 border rounded shadow-sm text-slate-800'
             />
-            <span className={todo.done ? 'line-through text-gray-400' : ''}>
-              {todo.task}
-            </span>
-            </div>
-            {/* BOTÓN ELIMINAR TAREA */}
             <button
-              onClick={()=> deleteTodo(todo.id)}
-              className='text-red-400 hover:text-red-600 font-medium text-sm px-5 py-1 hover:bg-red-50 transition-all border'
+              type='submit'
+              className='px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors'
             >
-              Eliminar
+              Añadir
             </button>
-          </li>
-        ))}
-      </ul>
+          </form>
+          {/* LISTA TAREAS*/}
+          <ul className='space-y-2'>
+            {todos.map((todo) => (
+              <li
+                key={todo.id}
+                className='flex items-center justify-between gap-2 p-2 border rounded hover:bg-gray-50'
+              >
+                <div className='flex items-center gap-3'>
+                  <input
+                    type='checkbox'
+                    className='w-5 h-5 cursor-pointer'
+                    checked={todo.done}
+                    onChange={() => handleToggle(todo.id, todo.done)}
+                  />
+                  <span
+                    className={todo.done ? 'line-through text-gray-400' : ''}
+                  >
+                    {todo.task}
+                  </span>
+                </div>
+                {/* BOTÓN ELIMINAR TAREA */}
+                <button
+                  onClick={() => deleteTodo(todo.id)}
+                  className='text-red-400 hover:text-red-600 font-medium text-sm px-5 py-1 hover:bg-red-50 transition-all border'
+                >
+                  Eliminar
+                </button>
+              </li>
+            ))}
+          </ul>
 
-      {todos.length === 0 && <p>No hay tareas por ahora 👏</p>}
-      </div>
+          {todos.length === 0 && <p>No hay tareas por ahora 👏</p>}
+        </div>
       </div>
     </main>
   )
