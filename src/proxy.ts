@@ -24,7 +24,7 @@ export function proxy(request: NextRequest) {
 }
 // RUTAS QUE EJECUTA MIDDLEWARE
 export const config = {
-  matcher: ['/todos', '/login', '/register']
+  matcher: ['/', '/todos', '/login', '/register']
 }
 
 // AL HACER ESTO, SI LO SIMULO SIN COOKIES, NO ME DEJA VER EL STATUS, LO IMPIDE TOTALMENTE
