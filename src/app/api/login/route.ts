@@ -38,7 +38,10 @@ export async function POST(request: Request) {
     
     cookieStore.set('user_session', jwt, {
       httpOnly: true,
-      path: '/'
+      secure: true,
+      sameSite: 'lax',
+      path: '/', // DESDE LA RAÍZ, YA QUE PROXY(MIDDLEWARE) LO NECESITA. TAMBIÉN MI HEADER, YA QUE ESTÁ EN TODOS LOS SITIOS Y ES DESDE DONDE LOGIN O REGISTER
+      maxAge: 86400
     })
     return NextResponse.json({ message: 'Login correcto' }, { status: 200 })
   } catch (error) {

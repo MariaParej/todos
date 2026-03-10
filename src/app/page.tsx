@@ -20,10 +20,10 @@ export default function TodosPage() {
     try {
       const response = await fetch('/api/todos')
 
-      if(response.status === 401){
+      /*if(response.status === 401){
         router.push('/login')
         return
-      }
+      } YA NO ES NECESARIO CON EL MIDDLEWARE*/
 
       if(!response.ok)throw new Error('Error al obtener las tareas')
 
