@@ -1,16 +1,16 @@
 'use client'
 
 import Link from 'next/link'
-import {useRouter} from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
 export default function Register() {
   const router = useRouter()
+  const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: ''
+    firstName: '',
+    email: ''
   })
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -21,9 +21,10 @@ export default function Register() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault() // EVITA QUE PARPADEE
+    setLoading(true)
 
     try {
-      const response = await fetch('/api/register', {
+      const response = await fetch('/api/register/init', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -32,15 +33,15 @@ export default function Register() {
       const data = await response.json()
 
       if (response.ok) {
-        toast.success('Cuenta creada con éxito.')
-        setTimeout(() => {
-          router.push('/login')
-        }, 1500)
+        toast.success('Revisa tu correo para completar el registro')
       } else {
         alert(data.message)
       }
     } catch (error) {
       console.error('Error al enviar:', error)
+      toast.error('Hubo un problema con el servidor.')
+    } finally {
+      setLoading(false)
     }
   }
   return (
@@ -49,13 +50,17 @@ export default function Register() {
         <h2 className='text-3xl font-bold text-slate-900 text-center mt-4 mb-8'>
           CREAR CUENTA
         </h2>
+        <p className='text-center text-slate-500 mb-8'>
+          Introduce tus datos y te enviaremos un enlace para configurar tu
+          contraseña.
+        </p>
         <form onSubmit={handleSubmit} className='space-y-6'>
           <div>
             <label className='block text-sm font-medium mb-2'>Nombre</label>
             <input
-              name='name'
+              name='firstName'
               type='text'
-              value={formData.name}
+              value={formData.firstName}
               className='w-full bg-slate-900 border rounded-lg p-3 text-white focus:outline-none focus:border-orange-900 transition-colors'
               onChange={handleChange}
               placeholder='Nombre'
@@ -81,30 +86,12 @@ export default function Register() {
               required
             />
           </div>
-          <div>
-            <label
-              htmlFor='password-input'
-              className='block text-sm font-medium mb-2'
-            >
-              Contraseña
-            </label>
-            <input
-              id='password-input'
-              type='password'
-              value={formData.password}
-              name='password'
-              autoComplete='current-password'
-              className='w-full bg-slate-900 border rounded-lg p-3 text-white focus:outline-none focus:border-orange-900 transition-colors'
-              onChange={handleChange}
-              placeholder='Mínimo 6 caracteres'
-              required
-            />
-          </div>
           <button
             type='submit'
+            disabled={loading}
             className='w-full bg-slate-900 text-orange-900 font-bold py-3 rounded hover:bg-orange-900 hover:text-white transition-colors tracking-widest cursor-pointer disabled:opacity-50'
           >
-            Enviar
+            {loading ? 'ENVIANDO...' : 'ENVIAR ENLACE DE CONFIRMACIÓN'}
           </button>
         </form>
         <p className='mt-6 text-center text-sm'>
