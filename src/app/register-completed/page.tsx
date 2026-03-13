@@ -4,7 +4,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { useState, Suspense } from 'react'
 import { toast } from 'sonner'
 
-function RegisterCompleted() {
+export default function RegisterCompleted() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const token = searchParams.get('token') //captura el JWT del email, lo coge de la URL
@@ -55,6 +55,11 @@ function RegisterCompleted() {
   }
 
   return (
+        <main className='min-h-screen bg-slate-50 p-4 md:p-8 font-sans text-slate-900'>
+      <div className='max-w-2xl mx-auto bg-white shadow-xl rounded-xl border border-slate-100 overflow-hidden p-8'>
+        <h2 className='text-3xl font-bold text-slate-900 text-center mt-4 mb-8'>
+          ESTABLECE TU CONTRASEÑA
+        </h2>
     <form onSubmit={handleSubmit} className='space-y-6'>
       <div>
         <label className='block text-sm font-medium mb-2'>
@@ -90,11 +95,13 @@ function RegisterCompleted() {
         {loading ? 'GUARDANDO...' : 'FINALIZAR REGISTRO'}
       </button>
     </form>
+    </div>
+    </main>
   )
 }
 
 // next.js lo necesita
-export default function RegisterCompletedPage() {
+/* export default function RegisterCompletedPage() {
   return (
     <main className='min-h-screen bg-slate-50 p-4 md:p-8 flex items-center justify-center'>
       <div className='max-w-md w-full bg-white shadow-xl rounded-xl p-8 border border-slate-100'>
@@ -107,4 +114,4 @@ export default function RegisterCompletedPage() {
       </div>
     </main>
   )
-}
+} */
