@@ -1,11 +1,11 @@
 'use client'
 
 import { useSearchParams, useRouter } from 'next/navigation'
-import { useState} from 'react'
+import { Suspense, useState} from 'react'
 import { toast } from 'sonner'
 import { authClient } from '@/lib/auth-client'
 
-export default function RegisterCompleted() {
+function RegisterCompleted() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const token = searchParams.get('token') //captura el JWT del email, lo coge de la URL
@@ -123,7 +123,7 @@ export default function RegisterCompleted() {
 }
 
 // next.js lo necesita
-/* export default function RegisterCompletedPage() {
+export default function RegisterCompletedPage() {
   return (
     <main className='min-h-screen bg-slate-50 p-4 md:p-8 flex items-center justify-center'>
       <div className='max-w-md w-full bg-white shadow-xl rounded-xl p-8 border border-slate-100'>
@@ -136,4 +136,4 @@ export default function RegisterCompleted() {
       </div>
     </main>
   )
-} */
+}
