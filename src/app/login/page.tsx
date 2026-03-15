@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { authClient } from '@/lib/auth-client'
 
 export default function Login() {
   const router = useRouter()
@@ -22,24 +23,18 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    try {
-      const response = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(loginData)
-      })
+    const { data, error } = await authClient.signIn.email({
+      email: loginData.email,
+      password: loginData.password,
+      callbackURL: '/' 
+    })
 
-      const data = await response.json()
-
-      if (response.ok) {
-        toast.success('Bienvenido')
-        router.push('/')
-        router.refresh()
-      } else {
-        toast.error('Error de acceso')
-      }
-    } catch (error) {
-      console.error('Error en el login')
+    if (error) {
+      toast.error(error.message || 'Error de acceso')
+    } else {
+      toast.success('¡Bienvenido de nuevo!')
+      router.push('/')
+      router.refresh()
     }
   }
   return (
@@ -83,10 +78,12 @@ export default function Login() {
             <input
               id='password-input'
               type='password'
-              value={loginData.password} name='password'
+              value={loginData.password}
+              name='password'
               autoComplete='current-password'
               className='w-full bg-slate-900 border rounded-lg p-3 text-white focus:outline-none focus:border-orange-900 transition-colors'
-              onChange={handleChange} placeholder='Introduce aquí tu contraseña'
+              onChange={handleChange}
+              placeholder='Introduce aquí tu contraseña'
               required
             />
           </div>

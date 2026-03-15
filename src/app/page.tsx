@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { authClient } from '@/lib/auth-client'
 
 interface Todo {
   id: number
@@ -13,24 +14,21 @@ export default function TodosPage() {
   const [todos, setTodos] = useState<Todo[]>([])
   const [loading, setLoading] = useState(true)
   const [newTask, setNewTask] = useState('')
-  const [isAuth, setIsAuth] = useState(false)
   const router = useRouter()
 
-  // OBTENCIÓN DATOS API (GET)
+  // hook de better auth para la sesión
+  const { data: session, isPending } = authClient.useSession()
+  // obtención datos API (GET)
   const fetchTodos = async () => {
     try {
       const response = await fetch('/api/todos')
 
-      if (response.status === 401) {
-        setIsAuth(false)
-        return
-      }
+      if (response.status === 401) return
 
       if (!response.ok) throw new Error('Error al obtener las tareas')
 
       const data = await response.json()
       setTodos(data)
-      setIsAuth(true)
     } catch (error) {
       alert('Error cargando tareas.')
       console.error('Error cargando tareas:', error)
@@ -39,7 +37,7 @@ export default function TodosPage() {
     }
   }
 
-  // ACTUALIZACIÓN ESTADO (PATCH)
+  // actualización estado (PATCH)
   const handleToggle = async (id: number, currentState: boolean) => {
     try {
       const response = await fetch('/api/todos', {
@@ -59,9 +57,9 @@ export default function TodosPage() {
     }
   }
 
-  // NUEVA TAREA
+  // nueva tarea
   const addTodo = async (e: React.FormEvent) => {
-    e.preventDefault() // EVITA QUE LA PÁGINA SE RECARGUE AL PULSAR ENTER
+    e.preventDefault() // evita que pa página se recargue al pulsar enter
     if (!newTask.trim()) return
 
     try {
@@ -81,7 +79,7 @@ export default function TodosPage() {
     }
   }
 
-  // ELIMINAR TAREA
+  // eliminar tarea
   const deleteTodo = async (id: number) => {
     try {
       const response = await fetch('/api/todos', {
@@ -97,10 +95,18 @@ export default function TodosPage() {
     }
   }
 
-  // EJECUTA LA CARGA LA PRIMERA VEZ
+  // ejecuta la carga
   useEffect(() => {
-    fetchTodos()
-  }, [])
+    if (session) fetchTodos()
+  }, [session]) //solo carga tareas si hay sesión
+
+  //estado de carga de la sesión
+  if (isPending)
+    return (
+      <div className='flex h-screen items-center justify-center'>
+        Verificando...
+      </div>
+    )
 
   if (loading)
     return (
@@ -109,7 +115,7 @@ export default function TodosPage() {
       </div>
     )
 
-  if (!isAuth)
+  if (!session)
     return (
       <main className='min-h-screen flex items-center justify-center bg-slate-50 p-4'>
         <div className='text-center p-8 bg-white shadow-xl rounded-2xl max-w-sm'>
@@ -131,6 +137,13 @@ export default function TodosPage() {
   return (
     <main className='min-h-screen bg-slate-50 p-4 md:p-8 font-sans'>
       <div className='max-w-2xl mx-auto bg-white shadow-xl rounded-xl border border-slate-100 overflow-hidden'>
+        <div className='p-6 border-b flex justify-between items-center bg-slate-900 text-white'>
+          <div>
+            <p className='text-xs text-slate-400'>Hola </p>
+            <h1 className='text-lg font-bold'>{session.user.name}</h1>
+          </div>
+        </div>
+
         <div className='p-6'>
           {/* FORMULARIO NUEVA TAREA */}
           <form onSubmit={addTodo} className='flex gap-2 mb-8'>

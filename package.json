@@ -13,6 +13,7 @@
     "@react-email/render": "^2.0.4",
     "@supabase/supabase-js": "^2.97.0",
     "bcryptjs": "^3.0.3",
+    "better-auth": "^1.5.5",
     "dotenv": "^17.3.1",
     "drizzle-orm": "^0.45.1",
     "jose": "^6.2.1",
