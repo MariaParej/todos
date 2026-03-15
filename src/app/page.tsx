@@ -97,25 +97,23 @@ export default function TodosPage() {
 
   // ejecuta la carga
   useEffect(() => {
-    if (session) fetchTodos()
-  }, [session]) //solo carga tareas si hay sesión
+    if (session) {
+      fetchTodos()
+    } else if (!isPending) {
+      setLoading(false)
+    }
+  }, [session, isPending]) //solo carga tareas si hay sesión
 
   //estado de carga de la sesión
-  if (isPending)
+  if (isPending) {
     return (
       <div className='flex h-screen items-center justify-center'>
         Verificando...
       </div>
     )
+  }
 
-  if (loading)
-    return (
-      <div className='min-h-screen flex items-center justify-center bg-slate-50'>
-        <p className='text-slate-500 animate-pulse'>Cargando tus tareas...</p>
-      </div>
-    )
-
-  if (!session)
+  if (!session) {
     return (
       <main className='min-h-screen flex items-center justify-center bg-slate-50 p-4'>
         <div className='text-center p-8 bg-white shadow-xl rounded-2xl max-w-sm'>
@@ -134,6 +132,16 @@ export default function TodosPage() {
         </div>
       </main>
     )
+  }
+
+  if (loading) {
+    return (
+      <div className='min-h-screen flex items-center justify-center bg-slate-50'>
+        <p className='text-slate-500 animate-pulse'>Cargando tus tareas...</p>
+      </div>
+    )
+  }
+
   return (
     <main className='min-h-screen bg-slate-50 p-4 md:p-8 font-sans'>
       <div className='max-w-2xl mx-auto bg-white shadow-xl rounded-xl border border-slate-100 overflow-hidden'>
