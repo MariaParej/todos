@@ -1,15 +1,23 @@
 'use client'
 import { useRouter } from 'next/navigation'
+import { authClient } from '@/lib/auth-client'
 
 export default function LogoutButton() {
   const router = useRouter()
 
-  async function handleLogout() {
-    const res = await fetch('/api/logout', { method: 'POST' })
-    if (res.ok) {
-      router.push('/login')
-      router.refresh()
-    }
+async function handleLogout() {
+    await authClient.signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          alert('Sesión cerrada')
+          router.push('/login')
+          router.refresh()
+        },
+        onError: (error) => {
+          alert(error.error.message)
+        }
+      }
+    })
   }
 
   return (

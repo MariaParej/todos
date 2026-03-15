@@ -1,10 +1,13 @@
 import Link from 'next/link'
-import { cookies } from 'next/headers'
 import LogoutButton from './LogoutButton'
+import { headers } from 'next/headers'
+import { auth } from '@/lib/auth'
 
 export default async function Header() {
-  const cookieStore = await cookies()
-  const isLogin = cookieStore.has('user_session')
+  const session = await auth.api.getSession({
+    headers: await headers()
+  })
+  const isLogin = !!session //las !! convierte a isLogin en boolean, si na las tuviera seria Session | null
   return (
     <header className='w-full bg-slate-900 text-white shadow-lg mb-8'>
       <div className='max-w-4xl mx-auto px-4 py-6 flex justify-between items-center'>

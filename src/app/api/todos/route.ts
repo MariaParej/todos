@@ -1,14 +1,23 @@
 import { db } from '@/db/index'
 import { todos } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
-import { NextResponse } from 'next/server'
-import { getUserId } from '@/lib/auth'
+import { NextResponse, NextRequest } from 'next/server'
+import { auth } from '@/lib/auth'
+import { headers } from 'next/headers'
 
-// MOSTRAR DATOS
+// obtener la sesión
+async function getAuthSession() {
+  const session = await auth.api.getSession({
+    headers: await headers()
+  })
+  return session
+}
+
+// mostrar datos
 export async function GET() {
-  const userId = await getUserId()
+  const session = await getAuthSession()
 
-  if (!userId) {
+  if (!session) {
     return NextResponse.json({ message: 'No logueado' }, { status: 401 })
   }
 
@@ -16,7 +25,7 @@ export async function GET() {
     const data = await db
       .select()
       .from(todos)
-      .where(eq(todos.profilesId, userId))
+      .where(eq(todos.userId, session.user.id))
 
     return NextResponse.json(data)
   } catch (error) {
@@ -24,11 +33,11 @@ export async function GET() {
   }
 }
 
-// MODIFICAR PARCIALMENTE (SÓLO CAMBIAMOS EL ESTADO DONE)
-export async function PATCH(request: Request) {
-  const userId = await getUserId()
+// modifica parcialmente (sólo modificamos es estado del done)
+export async function PATCH(request: NextRequest) {
+  const session = await getAuthSession()
 
-  if (!userId) {
+  if (!session) {
     return NextResponse.json({ message: 'No logueado' }, { status: 401 })
   }
   const { id, done } = await request.json()
@@ -37,7 +46,7 @@ export async function PATCH(request: Request) {
     const data = await db
       .update(todos)
       .set({ done })
-      .where(and(eq(todos.id, id), eq(todos.profilesId, userId)))
+      .where(and(eq(todos.id, id), eq(todos.userId, session.user.id)))
       .returning()
 
     return NextResponse.json(data[0])
@@ -49,19 +58,26 @@ export async function PATCH(request: Request) {
   }
 }
 
-// AÑADIR TAREA
-export async function POST(request: Request) {
-  const userId = await getUserId()
+// añadir tarea
+export async function POST(request: NextRequest) {
+  const session = await getAuthSession()
 
-  if (!userId) {
+  if (!session) {
     return NextResponse.json({ message: 'No logueado' }, { status: 401 })
   }
   const { task } = await request.json()
 
+  if (!task || task.trim().length === 0) {
+    return NextResponse.json(
+      { message: 'La tarea no puede estar vacía' },
+      { status: 400 }
+    )
+  }
+
   try {
     const data = await db
       .insert(todos)
-      .values({ task, done: false, profilesId: userId })
+      .values({ task, done: false, userId: session.user.id })
       .returning()
 
     return NextResponse.json(data[0], { status: 201 })
@@ -74,17 +90,17 @@ export async function POST(request: Request) {
 }
 
 // ELIMINAR TAREA
-export async function DELETE(request: Request) {
-  const userId = await getUserId()
+export async function DELETE(request: NextRequest) {
+  const session = await getAuthSession()
 
-  if (!userId) {
+  if (!session) {
     return NextResponse.json({ message: 'No logueado' }, { status: 401 })
   }
   const { id } = await request.json()
   try {
     const data = await db
       .delete(todos)
-      .where(and(eq(todos.id, id), eq(todos.profilesId, userId)))
+      .where(and(eq(todos.id, id), eq(todos.userId, session.user.id)))
       .returning()
 
     return NextResponse.json({ message: 'Tarea eliminada' })

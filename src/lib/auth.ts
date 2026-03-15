@@ -1,18 +1,15 @@
-import { cookies } from 'next/headers'
-import { jwtVerify } from 'jose'
-import { NextResponse } from 'next/server'
+import { betterAuth } from 'better-auth'
+import { drizzleAdapter } from 'better-auth/adapters/drizzle'
+import { db } from '@/db'
+import * as schema from '@/db/schema'
 
-export async function getUserId() {
-  const cookieStore = await cookies()
-  const token = cookieStore.get('user_session')?.value
-
-  if (!token) return null
-
-  try {
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET) // CLAVE EN MI .ENV.LOCAL
-    const { payload } = await jwtVerify(token, secret) // SE "ABRE EL SOBRE"
-    return payload.userId as string // EXTRAE EL ID REAL
-  } catch (error) {
-    return null
+export const auth = betterAuth({
+  database: drizzleAdapter(db, {
+    provider: 'pg', // Postgre de Supabase
+    schema: schema
+  }),
+  emailAndPassword: {
+    enabled: true,
+    minPasswordLength: 6,
   }
-}
+})
