@@ -1,17 +1,18 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { authClient } from '@/lib/auth-client'
 
 export default function Register() {
-  const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [sent, setSent] = useState(false)
   const [formData, setFormData] = useState({
     firstName: '',
     email: ''
   })
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
@@ -20,30 +21,64 @@ export default function Register() {
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault() // EVITA QUE PARPADEE
+    e.preventDefault()
     setLoading(true)
 
     try {
-      const response = await fetch('/api/register/init', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+      // Create the user account first
+      const { error: signUpError } = await authClient.signUp.email({
+        email: formData.email,
+        name: formData.firstName,
+        password: crypto.randomUUID(),
       })
 
-      const data = await response.json()
-
-      if (response.ok) {
-        toast.success('Revisa tu correo para completar el registro')
-      } else {
-        alert(data.message)
+      if (signUpError) {
+        toast.error(signUpError.message || 'Error al crear la cuenta')
+        setLoading(false)
+        return
       }
-    } catch (error) {
-      console.error('Error al enviar:', error)
+
+      // Send magic link for sign-in
+      const { error: magicLinkError } = await authClient.signIn.magicLink({
+        email: formData.email,
+        callbackURL: '/'
+      })
+
+      if (magicLinkError) {
+        toast.error(magicLinkError.message || 'Error al enviar el enlace')
+      } else {
+        setSent(true)
+        toast.success('¡Revisa tu correo para completar el registro!')
+      }
+    } catch {
       toast.error('Hubo un problema con el servidor.')
     } finally {
       setLoading(false)
     }
   }
+
+  if (sent) {
+    return (
+      <main className='min-h-screen bg-slate-50 p-4 md:p-8 font-sans text-slate-900'>
+        <div className='max-w-2xl mx-auto bg-white shadow-xl rounded-xl border border-slate-100 overflow-hidden p-8 text-center'>
+          <h2 className='text-3xl font-bold text-slate-900 mt-4 mb-4'>
+            REVISA TU CORREO
+          </h2>
+          <p className='text-slate-500 mb-6'>
+            Hemos enviado un enlace de confirmación a <strong>{formData.email}</strong>.
+            Haz clic en el enlace del correo para activar tu cuenta.
+          </p>
+          <p className='mt-6 text-center text-sm'>
+            ¿Ya tienes cuenta?{' '}
+            <Link href='/login' className='text-orange-900 hover:underline'>
+              Inicia sesión aquí
+            </Link>
+          </p>
+        </div>
+      </main>
+    )
+  }
+
   return (
     <main className='min-h-screen bg-slate-50 p-4 md:p-8 font-sans text-slate-900'>
       <div className='max-w-2xl mx-auto bg-white shadow-xl rounded-xl border border-slate-100 overflow-hidden p-8'>
@@ -51,8 +86,8 @@ export default function Register() {
           CREAR CUENTA
         </h2>
         <p className='text-center text-slate-500 mb-8'>
-          Introduce tus datos y te enviaremos un enlace para configurar tu
-          contraseña.
+          Introduce tus datos y te enviaremos un enlace para activar tu
+          cuenta.
         </p>
         <form onSubmit={handleSubmit} className='space-y-6'>
           <div>
@@ -91,7 +126,7 @@ export default function Register() {
             disabled={loading}
             className='w-full bg-slate-900 text-orange-900 font-bold py-3 rounded hover:bg-orange-900 hover:text-white transition-colors tracking-widest cursor-pointer disabled:opacity-50'
           >
-            {loading ? 'ENVIANDO...' : 'ENVIAR ENLACE DE CONFIRMACIÓN'}
+            {loading ? 'ENVIANDO...' : 'CREAR CUENTA'}
           </button>
         </form>
         <p className='mt-6 text-center text-sm'>

@@ -8,47 +8,65 @@ import { authClient } from '@/lib/auth-client'
 
 export default function Login() {
   const router = useRouter()
-  const [loginData, setLoginData] = useState({
-    email: '',
-    password: ''
-  })
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setLoginData({
-      ...loginData,
-      [e.target.name]: e.target.value
-    })
-  }
+  const [email, setEmail] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [sent, setSent] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setLoading(true)
 
-    const { data, error } = await authClient.signIn.email({
-      email: loginData.email,
-      password: loginData.password,
-      callbackURL: '/' 
-    })
+    try {
+      const { error } = await authClient.signIn.magicLink({
+        email,
+        callbackURL: '/'
+      })
 
-    if (error) {
-      toast.error(error.message || 'Error de acceso')
-    } else {
-      toast.success('¡Bienvenido de nuevo!')
-      router.push('/')
-      router.refresh()
+      if (error) {
+        toast.error(error.message || 'Error al enviar el enlace')
+      } else {
+        setSent(true)
+        toast.success('¡Revisa tu correo! Te hemos enviado un enlace de acceso.')
+      }
+    } catch {
+      toast.error('Error al enviar el enlace')
+    } finally {
+      setLoading(false)
     }
   }
+
+  if (sent) {
+    return (
+      <main className='min-h-screen bg-slate-50 p-4 md:p-8 font-sans text-slate-900'>
+        <div className='max-w-2xl mx-auto bg-white shadow-xl rounded-xl border border-slate-100 overflow-hidden p-8 text-center'>
+          <h2 className='text-3xl font-bold text-slate-900 mt-4 mb-4'>
+            REVISA TU CORREO
+          </h2>
+          <p className='text-slate-500 mb-6'>
+            Hemos enviado un enlace de acceso a <strong>{email}</strong>.
+            Haz clic en el enlace del correo para iniciar sesión.
+          </p>
+          <button
+            onClick={() => setSent(false)}
+            className='text-orange-900 hover:underline text-sm'
+          >
+            Usar otro email
+          </button>
+        </div>
+      </main>
+    )
+  }
+
   return (
     <main className='min-h-screen bg-slate-50 p-4 md:p-8 font-sans text-slate-900'>
       <div className='max-w-2xl mx-auto bg-white shadow-xl rounded-xl border border-slate-100 overflow-hidden p-8'>
         <h2 className='text-3xl font-bold text-slate-900 text-center mt-4 mb-8'>
           INICIAR SESIÓN
         </h2>
-        <form
-          onSubmit={handleSubmit}
-          className='space-y-6'
-          name='login'
-          id='login-form'
-        >
+        <p className='text-center text-slate-500 mb-8'>
+          Introduce tu email y te enviaremos un enlace para acceder.
+        </p>
+        <form onSubmit={handleSubmit} className='space-y-6'>
           <div>
             <label
               htmlFor='email-input'
@@ -59,39 +77,20 @@ export default function Login() {
             <input
               id='email-input'
               type='email'
-              value={loginData.email}
-              name='email'
+              value={email}
               autoComplete='username'
               className='w-full bg-slate-900 border rounded-lg p-3 text-white focus:outline-none focus:border-orange-900 transition-colors'
-              onChange={handleChange}
+              onChange={(e) => setEmail(e.target.value)}
               placeholder='Introduce aquí tu email'
-              required
-            />
-          </div>
-          <div>
-            <label
-              htmlFor='password-input'
-              className='block text-sm font-medium mb-2'
-            >
-              Contraseña
-            </label>
-            <input
-              id='password-input'
-              type='password'
-              value={loginData.password}
-              name='password'
-              autoComplete='current-password'
-              className='w-full bg-slate-900 border rounded-lg p-3 text-white focus:outline-none focus:border-orange-900 transition-colors'
-              onChange={handleChange}
-              placeholder='Introduce aquí tu contraseña'
               required
             />
           </div>
           <button
             type='submit'
+            disabled={loading}
             className='w-full bg-slate-900 text-orange-900 font-bold py-3 rounded hover:bg-orange-900 hover:text-white transition-colors tracking-widest cursor-pointer disabled:opacity-50'
           >
-            Enviar
+            {loading ? 'ENVIANDO...' : 'ENVIAR ENLACE DE ACCESO'}
           </button>
         </form>
         <p className='mt-6 text-center text-sm'>
