@@ -2,29 +2,31 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export function proxy(request: NextRequest) {
-  const token = request.cookies.get('user_session') // OBTENCIÓN DE LA COOKIE
+  // Buscamos la cookie de sesión oficial de Better Auth por defecto se llama 'better-auth.session_token'
+  const sessionToken =
+    request.cookies.get('better-auth.session_token') ||
+    request.cookies.get('__Secure-better-auth.session_token')
 
-  // RUTAS A PROTEGER
-  const todoPage = request.nextUrl.pathname.startsWith('/todos')
-  const authPage =
-    request.nextUrl.pathname === '/login' ||
-    request.nextUrl.pathname === '/register'
+  const { pathname } = request.nextUrl
 
-  // USUARIO SIN LOGUEAR
-  if (todoPage && !token) {
-    return NextResponse.redirect(new URL('/login', request.url)) // DE VUELTA AL LOGIN
+  // Rutas que queremos proteger
+  const isAuthPage = pathname === '/auth/login' || pathname === '/auth/register'
+  const isTodoPage = pathname.startsWith('/todos') || pathname === '/'
+
+  // Si el usuario no tiene token e intenta entrar a la home
+  if (isTodoPage && !sessionToken) {
+    return NextResponse.redirect(new URL('/auth/login', request.url))
   }
 
-  // USUARIO LOGUEADO
-  if (authPage && token) {
-    return NextResponse.redirect(new URL('/todos', request.url)) // PUEDE VER SUS TAREAS
+  // Si el usuario tiene token e intenta ir a login/register
+  if (isAuthPage && sessionToken) {
+    return NextResponse.redirect(new URL('/', request.url))
   }
 
   return NextResponse.next()
 }
-// RUTAS QUE EJECUTA MIDDLEWARE
-export const config = {
-  matcher: ['/', '/todos', '/login', '/register']
-}
 
-// AL HACER ESTO, SI LO SIMULO SIN COOKIES, NO ME DEJA VER EL STATUS, LO IMPIDE TOTALMENTE
+// Dónde actúa
+export const config = {
+  matcher: ['/', '/todos/:path*', '/auth/login', '/auth/register']
+}
