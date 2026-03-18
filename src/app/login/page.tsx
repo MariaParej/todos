@@ -1,105 +1,43 @@
 'use client'
 
+import { AuthView } from '@daveyplate/better-auth-ui'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
-import { toast } from 'sonner'
-import { authClient } from '@/lib/auth-client'
 
-export default function Login() {
-  const router = useRouter()
-  const [loginData, setLoginData] = useState({
-    email: '',
-    password: ''
-  })
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setLoginData({
-      ...loginData,
-      [e.target.name]: e.target.value
-    })
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    const { data, error } = await authClient.signIn.email({
-      email: loginData.email,
-      password: loginData.password,
-      callbackURL: '/' 
-    })
-
-    if (error) {
-      toast.error(error.message || 'Error de acceso')
-    } else {
-      toast.success('¡Bienvenido de nuevo!')
-      router.push('/')
-      router.refresh()
-    }
-  }
+export default function LoginPage() {
   return (
-    <main className='min-h-screen bg-slate-50 p-4 md:p-8 font-sans text-slate-900'>
-      <div className='max-w-2xl mx-auto bg-white shadow-xl rounded-xl border border-slate-100 overflow-hidden p-8'>
-        <h2 className='text-3xl font-bold text-slate-900 text-center mt-4 mb-8'>
-          INICIAR SESIÓN
-        </h2>
-        <form
-          onSubmit={handleSubmit}
-          className='space-y-6'
-          name='login'
-          id='login-form'
-        >
-          <div>
-            <label
-              htmlFor='email-input'
-              className='block text-sm font-medium mb-2'
+    <main className='min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center p-6'>
+      <div className='w-full max-w-[420px] bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-200 overflow-hidden'>
+        <div className='px-2 pt-4'>
+          <AuthView
+            redirectTo='/'
+            className='!shadow-none !border-none !bg-transparent !p-0 !max-w-md md:!max-w-lg lg:!max-w-xl'
+            localization={{
+              SIGN_IN: 'Iniciar sesión',
+              SIGN_IN_DESCRIPTION: 'Escribe tu email debajo',
+              SIGN_UP: '',
+              EMAIL: 'Correo electrónico',
+              PASSWORD: 'Contraseña',
+              FORGOT_PASSWORD_LINK: '¿Olvidate tu contraseña?',
+              SIGN_IN_ACTION: 'Entrar',
+              DONT_HAVE_AN_ACCOUNT: ''
+            }}
+          />
+        </div>
+        <div className='px-10 mt-2'>
+          <div className='border-t border-slate-100'></div>
+        </div>
+        {/* direccionar a mano */}
+        <div className='py-8 text-center'>
+          <p className='text-sm text-gray-600'>
+            ¿No tienes cuenta?{' '}
+            <Link
+              href='/register'
+              className='text-blue-600 hover:underline font-medium'
             >
-              Email
-            </label>
-            <input
-              id='email-input'
-              type='email'
-              value={loginData.email}
-              name='email'
-              autoComplete='username'
-              className='w-full bg-slate-900 border rounded-lg p-3 text-white focus:outline-none focus:border-orange-900 transition-colors'
-              onChange={handleChange}
-              placeholder='Introduce aquí tu email'
-              required
-            />
-          </div>
-          <div>
-            <label
-              htmlFor='password-input'
-              className='block text-sm font-medium mb-2'
-            >
-              Contraseña
-            </label>
-            <input
-              id='password-input'
-              type='password'
-              value={loginData.password}
-              name='password'
-              autoComplete='current-password'
-              className='w-full bg-slate-900 border rounded-lg p-3 text-white focus:outline-none focus:border-orange-900 transition-colors'
-              onChange={handleChange}
-              placeholder='Introduce aquí tu contraseña'
-              required
-            />
-          </div>
-          <button
-            type='submit'
-            className='w-full bg-slate-900 text-orange-900 font-bold py-3 rounded hover:bg-orange-900 hover:text-white transition-colors tracking-widest cursor-pointer disabled:opacity-50'
-          >
-            Enviar
-          </button>
-        </form>
-        <p className='mt-6 text-center text-sm'>
-          ¿No tienes cuenta?{' '}
-          <Link href='/register' className='text-orange-900 hover:underline'>
-            Regístrate aquí
-          </Link>
-        </p>
+              Regístrate aquí
+            </Link>
+          </p>
+        </div>
       </div>
     </main>
   )

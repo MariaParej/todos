@@ -4,6 +4,7 @@ import Header from '@/components/Header'
 import { Toaster } from '@/components/ui/sonner'
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
+import { Providers } from "./providers"
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -21,7 +22,8 @@ export default function RootLayout({
     <html lang='es' className={cn("font-sans", geist.variable)}>
       <body className='bg-slate-50'>
         <Header />
-        <Toaster position='top-center' offset='100px' />
+        {/*<Toaster position='top-center' offset='100px' />*/}
+        <Providers>{children}</Providers>
         <main>{children}</main>
       </body>
     </html>
