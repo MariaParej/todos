@@ -6,12 +6,17 @@ import EmailTemplate from '@/components/EmailTemplate'
 import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
-
+const baseUrl = process.env.BETTER_AUTH_URL!
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: 'pg', // postgre de Supabase
     schema: schema
   }),
+  //mis páginas reales
+  pages: {
+    signIn: '/auth/login',
+    signUp: '/auth/register'
+  },
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 6,
@@ -20,20 +25,17 @@ export const auth = betterAuth({
   emailVerification: {
     sendOnSignUp: true,
     autoSignInAfterVerification: true,
-    async sendVerificationEmail({
-      user,
-      url
-    }: {
-      user: { email: string; name?: string | null }
-      url: string
-    }) {
-      const { data, error } = await resend.emails.send({
+    callbackURL: `${baseUrl}/`,
+    async sendVerificationEmail({ user, url }) {
+      const fixedUrl = new URL(url)
+      fixedUrl.searchParams.set('callbackURL', `${baseUrl}/`)
+      await resend.emails.send({
         from: 'Registro ToDos <onboarding@resend.dev>',
         to: user.email,
         subject: 'Confirma tu registro en ToDos',
         react: EmailTemplate({
           firstName: user.name || 'Usuario',
-          confirmLink: url
+          confirmLink: fixedUrl.toString()
         })
       })
     }

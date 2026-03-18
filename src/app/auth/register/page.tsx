@@ -11,6 +11,7 @@ export default function RegisterPage() {
         <div className='px-2 pt-4'>
           <AuthView
             view="SIGN_UP"
+            redirectTo='/login'
             className='!shadow-none !border-none !bg-transparent !p-0 !max-w-md md:!max-w-lg lg:!max-w-xl'
             localization={{
               SIGN_UP: 'Crear cuenta',
@@ -34,7 +35,7 @@ export default function RegisterPage() {
           <p className='text-sm text-gray-600'>
             ¿Ya tienes cuenta?{' '}
             <Link
-              href='/login'
+              href='/auth/login'
               className='text-blue-600 hover:underline font-medium'
             >
               Inicia sesión aquí

@@ -10,7 +10,7 @@ async function handleLogout() {
       fetchOptions: {
         onSuccess: () => {
           alert('Sesión cerrada')
-          router.push('/login')
+          router.push('/auth/login')
           router.refresh()
         },
         onError: (error) => {

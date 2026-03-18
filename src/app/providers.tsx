@@ -22,8 +22,8 @@ export function Providers({ children }: { children: ReactNode }) {
       Link={Link}
       //parece que no funcionan (los he puesto a mano)
       viewPaths={{
-        SIGN_IN: 'login',
-        SIGN_UP: 'register'
+        SIGN_IN: '/login',
+        SIGN_UP: '/register'
       }}
     >
       {children}

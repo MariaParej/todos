@@ -23,13 +23,13 @@ export default async function Header() {
           ) : (
             <>
               <Link
-                href='/login'
+                href='/auth/login'
                 className='text-xl hover:text-orange-900 transition-all'
               >
                 Iniciar sesión
               </Link>
               <Link
-                href='/register'
+                href='/auth/register'
                 className='text-xl hover:text-orange-900 transition-all'
               >
                 Regístrate
